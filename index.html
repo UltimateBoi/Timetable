@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="description" content="Mobile-first 2-week school timetable">
+  <meta name="theme-color" content="#4F46E5">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <title>School Timetable</title>
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <h1 id="week-indicator">Week 1</h1>
+      <button id="settings-btn" aria-label="Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </header>
+
+    <main id="main-content">
+      <div id="day-navigation">
+        <button id="prev-day" aria-label="Previous day">‹</button>
+        <h2 id="current-day">Monday</h2>
+        <button id="next-day" aria-label="Next day">›</button>
+      </div>
+
+      <div id="lessons-container"></div>
+    </main>
+
+    <nav id="bottom-nav">
+      <button id="nav-today" class="nav-btn active" data-view="today">Today</button>
+      <button id="nav-week" class="nav-btn" data-view="week">Week</button>
+      <button id="nav-edit" class="nav-btn" data-view="edit">+ Add Lesson</button>
+    </nav>
+
+    <!-- Modals -->
+    <div id="editor-modal" class="modal" hidden>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="editor-title">Add Lesson</h3>
+          <button id="close-editor" aria-label="Close">✕</button>
+        </div>
+        <form id="lesson-form">
+          <input type="hidden" id="edit-lesson-id">
+          
+          <label for="lesson-type">Type:</label>
+          <select id="lesson-type" required>
+            <option value="recurring">Recurring (both weeks)</option>
+            <option value="extra">One-off Extra</option>
+          </select>
+
+          <div id="recurring-fields">
+            <label for="lesson-week">Week:</label>
+            <select id="lesson-week" required>
+              <option value="both">Both Weeks</option>
+              <option value="1">Week 1 Only</option>
+              <option value="2">Week 2 Only</option>
+            </select>
+
+            <label for="lesson-day">Day:</label>
+            <select id="lesson-day" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div id="extra-fields" hidden>
+            <label for="extra-date">Date:</label>
+            <input type="date" id="extra-date">
+          </div>
+
+          <label for="lesson-period">Period:</label>
+          <select id="lesson-period" required>
+            <!-- Populated dynamically from store.settings.periods -->
+          </select>
+
+          <label for="lesson-subject">Subject:</label>
+          <input type="text" id="lesson-subject" required placeholder="e.g. Business Studies">
+
+          <label for="lesson-room">Room:</label>
+          <input type="text" id="lesson-room" required placeholder="e.g. FT13">
+
+          <label for="lesson-teacher">Teacher (initials):</label>
+          <input type="text" id="lesson-teacher" required placeholder="e.g. RG, SMC" autocomplete="off" style="text-transform:uppercase">
+
+          <label for="lesson-notes">Notes:</label>
+          <textarea id="lesson-notes" rows="3"></textarea>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Save</button>
+            <button type="button" id="delete-lesson" class="btn-danger" hidden>Delete</button>
+            <button type="button" id="cancel-editor" class="btn-secondary">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="settings-modal" class="modal" hidden>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Settings</h3>
+          <button id="close-settings" aria-label="Close">✕</button>
+        </div>
+        <form id="settings-form">
+          <label for="week-start-date">Week 1 Start Date:</label>
+          <input type="date" id="week-start-date" required>
+          <p class="help-text">Pick a Monday that falls in Week 1</p>
+
+          <label for="year-group">Year Group:</label>
+          <select id="year-group">
+            <option value="7">Year 7</option>
+            <option value="8">Year 8</option>
+            <option value="9">Year 9</option>
+            <option value="10">Year 10</option>
+            <option value="11">Year 11</option>
+            <option value="12" selected>Year 12 (6th Form)</option>
+            <option value="13">Year 13 (6th Form)</option>
+          </select>
+
+          <div id="sixth-form-settings">
+            <label for="lunch-period">Lunch Period:</label>
+            <select id="lunch-period">
+              <option value="p6a">Period 6a (13:00–13:45)</option>
+              <option value="p6b">Period 6b (13:45–14:30)</option>
+            </select>
+            <p class="help-text">Which period is reserved as your lunch break</p>
+          </div>
+
+          <h4>Period Times</h4>
+          <div id="period-times-container"></div>
+
+          <div class="settings-section-divider"></div>
+          <button type="button" id="open-import-btn" class="btn-import-timetable">
+            Import Timetable via AI
+          </button>
+          <p class="help-text">Use an AI to bulk-import your 2-week timetable from a photo or text.</p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Save Settings</button>
+            <button type="button" id="cancel-settings" class="btn-secondary">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Import modal -->
+    <div id="import-modal" class="modal" hidden>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Import Timetable</h3>
+          <button id="close-import" aria-label="Close">✕</button>
+        </div>
+        <div class="import-body">
+
+          <div class="import-step">
+            <div class="import-step-number">1</div>
+            <div class="import-step-content">
+              <strong>Copy the AI prompt</strong>
+              <p>Give this prompt to any capable AI (e.g. ChatGPT, Claude, Gemini) along with photos or a description of your 2-week timetable.</p>
+              <button id="copy-prompt-btn" class="btn-primary" type="button">Copy AI Prompt</button>
+              <button id="toggle-prompt-preview" class="btn-ghost" type="button">Show full prompt ▼</button>
+              <textarea id="prompt-preview" class="prompt-preview" readonly hidden spellcheck="false"></textarea>
+            </div>
+          </div>
+
+          <div class="import-step">
+            <div class="import-step-number">2</div>
+            <div class="import-step-content">
+              <strong>Paste the AI's response</strong>
+              <p>The AI will return a JSON object. Paste it exactly as-is below.</p>
+            </div>
+          </div>
+
+          <form id="import-form">
+            <textarea
+              id="import-json"
+              class="import-json-input"
+              placeholder='Paste the AI JSON here, e.g. { "week1": { "mon": [ … ] }, "week2": { … } }'
+              spellcheck="false"
+              required
+            ></textarea>
+            <p id="import-error" class="import-error" aria-live="polite"></p>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Import</button>
+              <button type="button" id="cancel-import" class="btn-secondary">Cancel</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
