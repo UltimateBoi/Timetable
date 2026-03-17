@@ -3,6 +3,7 @@ import {
   getCurrentPeriodId, isLunchPeriod, getSubjectColour, formatDate,
 } from '../timetable.js';
 import { store } from '../store.js';
+import { updateLiveActivityData } from '../liveActivity.js';
 
 let currentDate = new Date();
 
@@ -55,6 +56,10 @@ export function renderDayView() {
   const currentStatus  = isToday
     ? getCurrentStatus(periods, lessons, activePeriodId)
     : null;
+
+  if (isToday) {
+     updateLiveActivityData(currentStatus);
+  }
 
   let html = currentStatus ? renderCurrentStatus(currentStatus) : '';
 
