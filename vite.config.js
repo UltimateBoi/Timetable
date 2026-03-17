@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: '/Timetable/',
+  base: './',
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
@@ -14,7 +14,7 @@ export default defineConfig({
         theme_color: '#4F46E5',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/Timetable/',
+        start_url: '.',
         icons: [
           {
             src: 'icon-192.png',
