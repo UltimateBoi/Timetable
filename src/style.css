@@ -107,6 +107,61 @@ body {
 #main-content { padding: .875rem; }
 #lessons-container { display: flex; flex-direction: column; gap: .625rem; }
 
+/* ── Current lesson status ──────────────────────────────────────────────── */
+.current-status-card {
+  background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 82%, #000 18%), var(--primary));
+  color: #fff;
+  border-radius: var(--radius);
+  padding: .875rem 1rem;
+  box-shadow: var(--shadow-md);
+}
+
+.current-status-title {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .85;
+  margin-bottom: .125rem;
+}
+
+.current-status-main {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.current-status-sub {
+  font-size: .8125rem;
+  margin-top: .125rem;
+  opacity: .92;
+}
+
+.current-status-progress {
+  margin-top: .625rem;
+}
+
+.current-status-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  font-size: .75rem;
+  margin-bottom: .25rem;
+}
+
+.current-status-track {
+  height: 8px;
+  background: rgba(255,255,255,.28);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.current-status-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: inherit;
+  transition: width .25s ease;
+}
+
 /* ── Lesson card ─────────────────────────────────────────────────────────── */
 .lesson-card {
   background: var(--surface);
@@ -123,6 +178,36 @@ body {
 .lesson-card:active { transform: scale(.98); box-shadow: none; }
 .lesson-card.current {
   box-shadow: 0 0 0 3px rgba(16,185,129,.2), var(--shadow-sm);
+}
+
+.lesson-progress {
+  margin-top: .5rem;
+  padding: .5rem;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+.lesson-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-bottom: .25rem;
+}
+
+.lesson-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 35%, var(--surface));
+  overflow: hidden;
+}
+
+.lesson-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in oklab, var(--accent) 78%, #111);
+  transition: width .25s ease;
 }
 
 .period-meta {

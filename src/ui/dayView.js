@@ -52,8 +52,11 @@ export function renderDayView() {
 
   const isToday        = formatDate(currentDate) === formatDate(new Date());
   const activePeriodId = isToday ? getCurrentPeriodId() : null;
+  const currentStatus  = isToday
+    ? getCurrentStatus(periods, lessons, activePeriodId)
+    : null;
 
-  let html = '';
+  let html = currentStatus ? renderCurrentStatus(currentStatus) : '';
 
   for (const period of periods) {
     // Period 8 — hidden unless something is actually scheduled in it
@@ -97,6 +100,7 @@ export function renderDayView() {
     const isCurrent = period.id === activePeriodId;
     const colour    = getSubjectColour(lesson.subject);
     const isExtra   = !!lesson.date;
+    const currentProgress = isCurrent ? getPeriodProgress(period) : null;
 
     html += `
       <div class="lesson-card ${isCurrent ? 'current' : ''}"
@@ -112,6 +116,16 @@ export function renderDayView() {
             <span class="lesson-room">${lesson.room}</span>
             <span class="lesson-teacher">${lesson.teacher}</span>
           </div>
+          ${currentProgress ? `
+            <div class="lesson-progress" aria-label="${currentProgress.percentage}% through this lesson">
+              <div class="lesson-progress-meta">
+                <span>Now</span>
+                <span>${currentProgress.elapsedMinutes}m / ${currentProgress.totalMinutes}m (${currentProgress.percentage}%)</span>
+              </div>
+              <div class="lesson-progress-track" role="presentation">
+                <div class="lesson-progress-fill" style="width: ${currentProgress.percentage}%"></div>
+              </div>
+            </div>` : ''}
           ${lesson.notes ? `<p class="lesson-notes">${lesson.notes}</p>` : ''}
           ${isExtra ? `<span class="badge-extra">One-off</span>` : ''}
         </div>
@@ -126,6 +140,92 @@ export function renderDayView() {
   }
 
   container.innerHTML = html;
+}
+
+function renderCurrentStatus(status) {
+  if (!status) return '';
+
+  if (!status.inPeriod) {
+    return `
+      <section class="current-status-card" aria-live="polite">
+        <p class="current-status-title">Current Lesson</p>
+        <p class="current-status-main">No active period right now</p>
+        ${status.nextPeriodLabel ? `<p class="current-status-sub">Next: ${status.nextPeriodLabel} at ${status.nextPeriodStart}</p>` : '<p class="current-status-sub">No more periods left today</p>'}
+      </section>`;
+  }
+
+  const title = status.lesson
+    ? status.lesson.subject
+    : (status.isLunch ? 'Lunch' : 'Free Period');
+
+  return `
+    <section class="current-status-card" aria-live="polite">
+      <p class="current-status-title">Current Lesson</p>
+      <p class="current-status-main">${title}</p>
+      <p class="current-status-sub">${status.period.label} · ${status.period.start}–${status.period.end}</p>
+      <div class="current-status-progress" aria-label="${status.progress.percentage}% through current period">
+        <div class="current-status-progress-meta">
+          <span>${status.progress.percentage}% through</span>
+          <span>${status.progress.elapsedMinutes}m / ${status.progress.totalMinutes}m</span>
+        </div>
+        <div class="current-status-track" role="presentation">
+          <div class="current-status-fill" style="width: ${status.progress.percentage}%"></div>
+        </div>
+      </div>
+    </section>`;
+}
+
+function getCurrentStatus(periods, lessons, activePeriodId) {
+  if (!activePeriodId) {
+    const nextPeriod = getNextPeriod(periods);
+    return {
+      inPeriod: false,
+      nextPeriodLabel: nextPeriod?.label ?? null,
+      nextPeriodStart: nextPeriod?.start ?? null,
+    };
+  }
+
+  const period = periods.find(p => p.id === activePeriodId);
+  if (!period) return null;
+
+  const lesson = lessons.find(l => l.periodId === activePeriodId) ?? null;
+
+  return {
+    inPeriod: true,
+    period,
+    lesson,
+    isLunch: isLunchPeriod(period.id) && !lesson,
+    progress: getPeriodProgress(period),
+  };
+}
+
+function getNextPeriod(periods) {
+  const nowMinutes = getNowMinutes();
+  return periods.find(period => toMinutes(period.start) > nowMinutes) ?? null;
+}
+
+function getPeriodProgress(period) {
+  const nowMinutes   = getNowMinutes();
+  const startMinutes = toMinutes(period.start);
+  const endMinutes   = toMinutes(period.end);
+
+  if (nowMinutes < startMinutes || nowMinutes >= endMinutes) return null;
+
+  const totalMinutes   = endMinutes - startMinutes;
+  const elapsedMinutes = nowMinutes - startMinutes;
+  const percentage     = Math.max(0, Math.min(100, Math.round((elapsedMinutes / totalMinutes) * 100)));
+
+  return { totalMinutes, elapsedMinutes, percentage };
+}
+
+function getNowMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+function toMinutes(hhmm) {
+  const [hours, minutes] = hhmm.split(':').map(Number);
+  return (hours * 60) + minutes;
 }
 
 function shiftDay(offset) {
