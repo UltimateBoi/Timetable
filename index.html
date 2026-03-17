@@ -133,10 +133,15 @@
           <div id="period-times-container"></div>
 
           <div class="settings-section-divider"></div>
-          <button type="button" id="open-import-btn" class="btn-import-timetable">
-            Import Timetable via AI
-          </button>
-          <p class="help-text">Use an AI to bulk-import your 2-week timetable from a photo or text.</p>
+          <div style="display: flex; gap: 0.5rem; justify-content: stretch; margin-bottom: 0.5rem;">
+            <button type="button" id="open-import-btn" class="btn-import-timetable" style="margin-bottom: 0; flex: 1;">
+              Import Timetable
+            </button>
+            <button type="button" id="export-timetable-btn" class="btn-import-timetable" style="margin-bottom: 0; flex: 1; background: var(--bg-hover); color: var(--text-main);">
+              Export Timetable
+            </button>
+          </div>
+          <p class="help-text">Use an AI to bulk-import your 2-week timetable from a photo or text, or export your current timetable to JSON.</p>
 
           <div class="form-actions">
             <button type="submit" class="btn-primary">Save Settings</button>

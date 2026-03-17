@@ -72,6 +72,7 @@ REMINDER: Output ONLY the JSON object above, populated with the timetable data I
 
 export function initImporter() {
   document.getElementById('open-import-btn').addEventListener('click', openImporter);
+  document.getElementById('export-timetable-btn').addEventListener('click', exportTimetable);
   document.getElementById('close-import').addEventListener('click', closeImporter);
   document.getElementById('cancel-import').addEventListener('click', closeImporter);
   document.getElementById('copy-prompt-btn').addEventListener('click', copyPrompt);
@@ -216,4 +217,20 @@ function validate(data) {
   }
 
   return errors;
+}
+
+function exportTimetable() {
+  const data = store.data.timetable;
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `timetable-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
