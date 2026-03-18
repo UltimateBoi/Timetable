@@ -5,7 +5,9 @@ import ActivityKit
 @main
 struct WidgetExtension: WidgetBundle {
     var body: some Widget {
-        LiveActivityWidget()
+        if #available(iOS 16.2, *) {
+            LiveActivityWidget()
+        }
     }
 }
 
