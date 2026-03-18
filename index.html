@@ -147,6 +147,16 @@
             <button type="submit" class="btn-primary">Save Settings</button>
             <button type="button" id="cancel-settings" class="btn-secondary">Cancel</button>
           </div>
+
+          <div class="settings-section-divider"></div>
+          <h4>Live Activity Debug (temp)</h4>
+          <div class="debug-block" style="display:flex; flex-direction:column; gap:0.5rem; background:var(--bg-hover); padding:0.75rem; border-radius:0.75rem; margin-bottom:0.5rem;">
+            <button type="button" id="debug-live-start" class="btn-primary">Send test live activity</button>
+            <button type="button" id="debug-live-log" class="btn-ghost">Log current status</button>
+            <button type="button" id="debug-live-end" class="btn-danger" style="align-self:flex-start;">End live activity</button>
+            <p id="debug-live-status" class="help-text" aria-live="polite">Not run yet.</p>
+            <p class="help-text">Temporary tooling to debug Live Activities on device. Remove before release.</p>
+          </div>
         </form>
       </div>
     </div>

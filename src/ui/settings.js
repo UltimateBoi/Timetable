@@ -1,5 +1,6 @@
 import { store } from '../store.js';
-import { formatDate } from '../timetable.js';
+import { formatDate, getLessonsForDate, getCurrentPeriodId, isLunchPeriod } from '../timetable.js';
+import { updateLiveActivityData } from '../liveActivity.js';
 import { renderDayView } from './dayView.js';
 
 export function initSettings() {
@@ -8,6 +9,10 @@ export function initSettings() {
   document.getElementById('cancel-settings').addEventListener('click', closeSettings);
   document.getElementById('settings-form').addEventListener('submit', onSave);
   document.getElementById('year-group').addEventListener('change', onYearGroupChange);
+
+  document.getElementById('debug-live-start')?.addEventListener('click', onLiveActivityTest);
+  document.getElementById('debug-live-end')?.addEventListener('click', onLiveActivityEnd);
+  document.getElementById('debug-live-log')?.addEventListener('click', onLiveActivityLog);
 
   // Auto-open on first visit (no week start date configured)
   if (!store.getSettings().weekStartDate) {
@@ -91,4 +96,119 @@ function onSave(e) {
 
 function closeSettings() {
   document.getElementById('settings-modal').hidden = true;
+}
+
+// ── Live Activity debug helpers (temporary) ────────────────────────────────
+
+async function onLiveActivityTest() {
+  const status = computeCurrentStatusForNow() ?? buildSyntheticStatus();
+  try {
+    await updateLiveActivityData(status);
+    setDebugStatus(`Sent test state: ${describeStatus(status)}`);
+  } catch (e) {
+    console.error('[live-activity] test send failed', e);
+    setDebugStatus('Failed to send test live activity — see console.');
+  }
+}
+
+async function onLiveActivityEnd() {
+  try {
+    await updateLiveActivityData(null);
+    setDebugStatus('Requested live activity end.');
+  } catch (e) {
+    console.error('[live-activity] end failed', e);
+    setDebugStatus('Failed to end live activity — see console.');
+  }
+}
+
+function onLiveActivityLog() {
+  const status = computeCurrentStatusForNow();
+  console.log('[live-activity] current status', status);
+  setDebugStatus(status ? `Current status logged: ${describeStatus(status)}` : 'No current status (likely weekend or unconfigured).');
+}
+
+function computeCurrentStatusForNow() {
+  const { periods } = store.getSettings();
+  const { lessons } = getLessonsForDate(new Date());
+  const activePeriodId = getCurrentPeriodId();
+  return buildStatus(periods, lessons, activePeriodId);
+}
+
+function buildSyntheticStatus() {
+  const now = new Date();
+  const start = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const endDate = new Date(now.getTime() + 45 * 60_000);
+  const end = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+  const period = { id: 'debug', label: 'Debug Period', start, end, isBreak: false, isExtra: false };
+  return {
+    inPeriod: true,
+    period,
+    lesson: { subject: 'Live Activity Test', room: 'DBG', teacher: 'BOT' },
+    isLunch: false,
+    progress: getPeriodProgress(period),
+  };
+}
+
+function buildStatus(periods, lessons, activePeriodId) {
+  if (!activePeriodId) {
+    const nextPeriod = getNextPeriod(periods);
+    return {
+      inPeriod: false,
+      nextPeriodLabel: nextPeriod?.label ?? null,
+      nextPeriodStart: nextPeriod?.start ?? null,
+    };
+  }
+
+  const period = periods.find(p => p.id === activePeriodId);
+  if (!period) return null;
+
+  const lesson = lessons.find(l => l.periodId === activePeriodId) ?? null;
+
+  return {
+    inPeriod: true,
+    period,
+    lesson,
+    isLunch: isLunchPeriod(period.id) && !lesson,
+    progress: getPeriodProgress(period),
+  };
+}
+
+function getNextPeriod(periods) {
+  const nowMinutes = getNowMinutes();
+  return periods.find(period => toMinutes(period.start) > nowMinutes) ?? null;
+}
+
+function getPeriodProgress(period) {
+  const nowMinutes   = getNowMinutes();
+  const startMinutes = toMinutes(period.start);
+  const endMinutes   = toMinutes(period.end);
+
+  if (nowMinutes < startMinutes || nowMinutes >= endMinutes) return null;
+
+  const totalMinutes   = endMinutes - startMinutes;
+  const elapsedMinutes = nowMinutes - startMinutes;
+  const percentage     = Math.max(0, Math.min(100, Math.round((elapsedMinutes / totalMinutes) * 100)));
+
+  return { totalMinutes, elapsedMinutes, percentage };
+}
+
+function getNowMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+function toMinutes(hhmm) {
+  const [hours, minutes] = hhmm.split(':').map(Number);
+  return (hours * 60) + minutes;
+}
+
+function describeStatus(status) {
+  if (!status) return 'none';
+  if (!status.inPeriod) return 'no active period';
+  return `${status.period.label} · ${status.period.start}-${status.period.end} (${status.lesson?.subject ?? (status.isLunch ? 'Lunch' : 'Free')})`;
+}
+
+function setDebugStatus(text) {
+  const el = document.getElementById('debug-live-status');
+  if (el) el.textContent = text;
 }
