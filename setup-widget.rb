@@ -25,6 +25,8 @@ widget_target.add_file_references([generic_attributes_file, widget_extension_fil
 widget_target.build_configurations.each do |config|
   config.build_settings['INFOPLIST_FILE'] = 'WidgetExtension/Info.plist'
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.ultimateboi.timetable.WidgetExtension'
+  config.build_settings['PRODUCT_NAME'] = 'WidgetExtension'
+  config.build_settings['TARGET_NAME'] = 'WidgetExtension'
   config.build_settings['SWIFT_VERSION'] = '5.0'
 end
 
