@@ -14,12 +14,12 @@ struct LiveActivityWidget: Widget {
         ActivityConfiguration(for: GenericAttributes.self) { context in
             // Lock screen / Banner UI
             VStack {
-                Text(context.state.title).font(.headline)
-                Text(context.state.period).font(.subheadline)
+                Text(context.state.values["title"] ?? "").font(.headline)
+                Text(context.state.values["period"] ?? "").font(.subheadline)
                 HStack {
-                    Text(context.state.percentage)
+                    Text(context.state.values["percentage"] ?? "")
                     Spacer()
-                    Text(context.state.remaining)
+                    Text(context.state.values["remaining"] ?? "")
                 }
             }
             .padding()
@@ -27,21 +27,21 @@ struct LiveActivityWidget: Widget {
             DynamicIsland {
                 // Expanded Region
                 DynamicIslandExpandedRegion(.leading) {
-                    Text(context.state.period)
+                    Text(context.state.values["period"] ?? "")
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(context.state.remaining)
+                    Text(context.state.values["remaining"] ?? "")
                 }
                 DynamicIslandExpandedRegion(.center) {
-                    Text(context.state.title)
+                    Text(context.state.values["title"] ?? "")
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text("\(context.state.percentage) Complete")
+                    Text("\(context.state.values["percentage"] ?? "") Complete")
                 }
             } compactLeading: {
-                Text(context.state.period)
+                Text(context.state.values["period"] ?? "")
             } compactTrailing: {
-                Text(context.state.remaining)
+                Text(context.state.values["remaining"] ?? "")
             } minimal: {
                 Text("📚")
             }

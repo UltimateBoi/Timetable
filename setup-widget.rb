@@ -27,6 +27,25 @@ end
 app_target = project.targets.find { |t| t.name == 'App' }
 app_target.add_file_references([generic_attributes_file]) if app_target
 
+if app_target
+  # Add dependency so widget builds before app
+  app_target.add_dependency(widget_target)
+
+  # Embed the extension into the app
+  embed_phase = app_target.copy_files_build_phases.find { |p| p.name == 'Embed Foundation Extensions' }
+  unless embed_phase
+    embed_phase = project.new(Xcodeproj::Project::Object::PBXCopyFilesBuildPhase)
+    embed_phase.name = 'Embed Foundation Extensions'
+    embed_phase.symbol_dst_subfolder_spec = :plug_ins
+    app_target.build_phases << embed_phase
+  end
+  # check if not already added
+  unless embed_phase.files.map(&:file_ref).include?(widget_target.product_reference)
+    build_file = embed_phase.add_file_reference(widget_target.product_reference)
+    build_file.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
+  end
+end
+
 # Add NSSupportsLiveActivities to main app Info.plist
 info_plist_path = 'ios/App/App/Info.plist'
 if File.exist?(info_plist_path)
