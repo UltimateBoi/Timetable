@@ -9,6 +9,7 @@ struct WidgetExtension: WidgetBundle {
     }
 }
 
+@available(iOS 16.2, *)
 struct LiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: GenericAttributes.self) { context in
