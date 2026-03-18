@@ -2,6 +2,11 @@ require 'xcodeproj'
 project_path = 'ios/App/App.xcodeproj'
 project = Xcodeproj::Project.open(project_path)
 
+if project.targets.any? { |t| t.name == 'WidgetExtension' }
+  puts "WidgetExtension target already exists. Skipping setup."
+  exit 0
+end
+
 # Create a new group for WidgetExtension if doesn't exist
 widget_group = project.main_group.find_subpath(File.join('WidgetExtension'), true)
 widget_group.set_source_tree('<group>')
